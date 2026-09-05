@@ -1,0 +1,32 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and package
+        shell: pwsh
+        run: .\package.ps1
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $zip = Get-ChildItem .\dist\packages\*-trial.zip | Select-Object -First 1
+          gh release create $env:GITHUB_REF_NAME $zip.FullName --title $env:GITHUB_REF_NAME --generate-notes
+      - name: Upload trial package
+        uses: actions/upload-artifact@v4
+        with:
+          name: suishen-ledger-trial
+          path: dist/packages/*-trial.zip
