@@ -1,0 +1,4 @@
+dist/Data/
+dist/Updates/
+*.user
+*.tmp
